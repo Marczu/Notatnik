@@ -1,22 +1,27 @@
 package com.marcinmejner.menudemo;
 
+import android.content.Context;
 import android.content.Intent;
-import android.support.annotation.Nullable;
-import android.support.v7.app.ActionBar;
+import android.content.SharedPreferences;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.view.MenuItem;
 import android.widget.EditText;
+
+import java.util.HashSet;
 
 public class NoteEditorActivity extends AppCompatActivity {
     EditText editText;
     int noteId;
 
-    @Nullable
+
     @Override
-    public ActionBar getSupportActionBar() {
-        return super.getSupportActionBar();
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if(item.getItemId() == android.R.id.home)
+            finish();
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
@@ -24,6 +29,9 @@ public class NoteEditorActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_note_editor);
         editText = findViewById(R.id.editText);
+        if(getSupportActionBar()!=null){
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        }
 
         Intent intent = getIntent();
         noteId = intent.getIntExtra(MainActivity.noteId, -1);
@@ -47,6 +55,10 @@ public class NoteEditorActivity extends AppCompatActivity {
 
                 MainActivity.notes.set(noteId, String.valueOf(charSequence));
                 MainActivity.adapter.notifyDataSetChanged();
+
+                SharedPreferences sharedPreferences = getApplicationContext().getSharedPreferences("com.marcinmejner.menudemo", Context.MODE_PRIVATE);
+                HashSet<String> hashSet = new HashSet<>(MainActivity.notes);
+                sharedPreferences.edit().putStringSet("notes", hashSet).apply();
 
             }
 

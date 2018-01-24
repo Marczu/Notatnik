@@ -18,6 +18,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 
 public class MainActivity extends AppCompatActivity {
     static ArrayAdapter adapter;
@@ -51,12 +52,18 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         ListView listView = findViewById(R.id.listView);
+        SharedPreferences sharedPreferences = getApplicationContext().getSharedPreferences("com.marcinmejner.menudemo", Context.MODE_PRIVATE);
+        HashSet<String> hashSet = (HashSet<String>) sharedPreferences.getStringSet("notes", null);
 
-        notes.add("Przykład");
+        if(hashSet==null){
+            notes.add("Przykład");
+        }else{
+            notes = new ArrayList<>(hashSet);
+        }
 
         adapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1, notes);
-        listView.setAdapter(adapter);
 
+        listView.setAdapter(adapter);
 
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -66,11 +73,40 @@ public class MainActivity extends AppCompatActivity {
                 intent.putExtra(noteId, i);
 
                 startActivity(intent);
+            }
+        });
 
+        listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
+                final int itemToDelete = i;
+
+                new AlertDialog.Builder(MainActivity.this).
+                        setIcon(R.drawable.delete).
+                        setTitle("Usuniecie notatki").
+                        setMessage("Czy napewno chcesz usunąć notatke?").
+                        setPositiveButton("TAK", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+
+                                notes.remove(itemToDelete);
+                                adapter.notifyDataSetChanged();
+
+                                SharedPreferences sharedPreferences = getApplicationContext().getSharedPreferences("com.marcinmejner.menudemo", Context.MODE_PRIVATE);
+                                HashSet<String> hashSet = new HashSet<>(MainActivity.notes);
+                                sharedPreferences.edit().putStringSet("notes", hashSet).apply();
+                            }
+                        }).
+                        setNegativeButton("NIE", null).show();
+
+
+                return true;
             }
         });
 
     }
+
+
 
 }
 
